@@ -1348,37 +1348,7 @@ run(function()
 	})
 end)
 	
-run(function()
-	local AutoClicker
-	local CPS
-	local BlockCPS = {}
-	local Thread
-	
-	local function AutoClick()
-		if Thread then
-			task.cancel(Thread)
-		end
-	
-		Thread = task.delay(1 / 7, function()
-			repeat
-				if not bedwars.AppController:isLayerOpen(bedwars.UILayers.MAIN) then
-					local blockPlacer = bedwars.BlockPlacementController.blockPlacer
-					if store.hand.toolType == 'block' and blockPlacer then
-						if (workspace:GetServerTimeNow() - bedwars.BlockCpsController.lastPlaceTimestamp) >= ((1 / 12) * 0.5) then
-							local mouseinfo = blockPlacer.clientManager:getBlockSelector():getMouseInfo(0)
-							if mouseinfo and mouseinfo.placementPosition == mouseinfo.placementPosition then
-								task.spawn(blockPlacer.placeBlock, blockPlacer, mouseinfo.placementPosition)
-							end
-						end
-					elseif store.hand.toolType == 'sword' then
-						bedwars.SwordController:swingSwordAtMouse(0.39)
-					end
-				end
-	
-				task.wait(1 / (store.hand.toolType == 'block' and BlockCPS or CPS).GetRandomValue())
-			until not AutoClicker.Enabled
-		end)
-	end
+
 	
 run(function()
 	local old
@@ -9285,4 +9255,3 @@ run(function()
 	})
 end)
 
-vape:Remove('AutoClicker')
