@@ -18259,7 +18259,7 @@ run(function()
 	end
 
 
-	AutoNoelle = vape.Categories.Kits:CreateModule({
+	AutoNoelle = vape.Categories.Minigames:CreateModule({
 		Name = "AutoNoelle",
 		Function = function(callback)
 			if store.equippedKit ~= "slime_tamer" then
