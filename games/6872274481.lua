@@ -1635,28 +1635,7 @@ run(function()
 	})
 end)
 	
-run(function()
-	local Mode
-	local Expand
-	local objects, set = {}
-	
-	local function createHitbox(ent)
-		if ent.Targetable and ent.Player then
-			local hitbox = Instance.new('Part')
-			hitbox.Size = Vector3.new(3, 6, 3) + Vector3.one * (Expand.Value / 5)
-			hitbox.Position = ent.RootPart.Position
-			hitbox.CanCollide = false
-			hitbox.Massless = true
-			hitbox.Transparency = 1
-			hitbox.Parent = ent.Character
-			local weld = Instance.new('Motor6D')
-			weld.Part0 = hitbox
-			weld.Part1 = ent.RootPart
-			weld.Parent = hitbox
-			objects[ent] = hitbox
-		end
-	end
-end)													
+												
 local FastBreak
 run(function()
 	local Time
@@ -1740,7 +1719,28 @@ run(function()
 		end
 	})
 end)
-run(function()											
+													
+run(function()
+	local Mode
+	local Expand
+	local objects, set = {}
+	
+	local function createHitbox(ent)
+		if ent.Targetable and ent.Player then
+			local hitbox = Instance.new('Part')
+			hitbox.Size = Vector3.new(3, 6, 3) + Vector3.one * (Expand.Value / 5)
+			hitbox.Position = ent.RootPart.Position
+			hitbox.CanCollide = false
+			hitbox.Massless = true
+			hitbox.Transparency = 1
+			hitbox.Parent = ent.Character
+			local weld = Instance.new('Motor6D')
+			weld.Part0 = hitbox
+			weld.Part1 = ent.RootPart
+			weld.Parent = hitbox
+			objects[ent] = hitbox
+		end
+	end										
 	HitBoxes = vape.Categories.Blatant:CreateModule({
 		Name = 'HitBoxes',
 		Function = function(callback)
