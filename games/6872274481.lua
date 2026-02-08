@@ -1740,7 +1740,7 @@ run(function()
 		end
 	})
 end)
-													
+run(function()											
 	HitBoxes = vape.Categories.Blatant:CreateModule({
 		Name = 'HitBoxes',
 		Function = function(callback)
