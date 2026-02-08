@@ -9402,4 +9402,4 @@ run(function()
         end,
         Tooltip = "Allows you to see everyone's kit during kit phase (squads ranked!)"
     })
-
+end)
