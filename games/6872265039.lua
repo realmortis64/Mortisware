@@ -34,6 +34,8 @@ run(function()
 	local Client = require(replicatedStorage.TS.remotes).default.Client
 
 	bedwars = setmetatable({
+		MatchHistroyApp = require(lplr.PlayerScripts.TS.controllers.global["match-history"].ui["match-history-moderation-app"]).MatchHistoryModerationApp,
+	 	MatchHistroyController = Knit.Controllers.MatchHistoryController,
 		Client = Client,
 		CrateItemMeta = debug.getupvalue(Flamework.resolveDependency('client/controllers/global/reward-crate/crate-controller@CrateController').onStart, 3),
 		Store = require(lplr.PlayerScripts.TS.ui.store).ClientStore
@@ -126,9 +128,6 @@ end)
 
 run(function()
     local MHA
-    local b = {
-        MatchHistroyApp = require(lplr.PlayerScripts.TS.controllers.global["match-history"].ui["match-history-moderation-app"]).MatchHistoryModerationApp,
-    }
     MHA = vape.Categories.Minigames:CreateModule({
         Name = "ViewHistory",
         Function = function(callback)
@@ -136,7 +135,7 @@ run(function()
                 MHA:Toggle(false)
                 bedwars.MatchHistoryController:requestMatchHistory(lplr.Name):andThen(function(Data)
                     if Data then
-                        bedwars.AppController:openApp({app = b.MatchHistroyApp,appId = "MatchHistoryApp",},Data)
+                        bedwars.AppController:openApp({app = bedwars.MatchHistroyApp,appId = "MatchHistoryApp",},Data)
                     end
                 end)
             else
