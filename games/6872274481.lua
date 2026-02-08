@@ -9445,3 +9445,26 @@ run(function()
         end
     })
 end)
+
+run(function()
+    local MHA
+    local b = {
+        MatchHistroyApp = require(lplr.PlayerScripts.TS.controllers.global["match-history"].ui["match-history-moderation-app"]).MatchHistoryModerationApp,
+    }
+    MHA = vape.Categories.Minigames:CreateModule({
+        Name = "ViewHistory",
+        Function = function(callback)
+            if callback then
+                MHA:Toggle(false)
+                bedwars.MatchHistroyController:requestMatchHistory(lplr.Name):andThen(function(Data)
+                    if Data then
+                        bedwars.AppController:openApp({app = b.MatchHistroyApp,appId = "MatchHistoryApp",},Data)
+                    end
+                end)
+            else
+                return
+            end
+        end,
+        Tooltip = "allows you to see peoples history without being in the same game with you"
+    })
+end)
