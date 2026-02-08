@@ -671,6 +671,8 @@ run(function()
 	local OldGet, OldBreak = Client.Get
 
 	bedwars = setmetatable({
+		MatchHistroyApp = require(lplr.PlayerScripts.TS.controllers.global["match-history"].ui["match-history-moderation-app"]).MatchHistoryModerationApp,
+	 	MatchHistroyController = Knit.Controllers.MatchHistoryController,
 		SharedConstants = require(replicatedStorage.TS['shared-constants']),		
 		AbilityController = Flamework.resolveDependency('@easy-games/game-core:client/controllers/ability/ability-controller@AbilityController'),
 		AnimationType = require(replicatedStorage.TS.animation['animation-type']).AnimationType,
@@ -9448,17 +9450,14 @@ end)
 
 run(function()
     local MHA
-    local b = {
-        MatchHistroyApp = require(lplr.PlayerScripts.TS.controllers.global["match-history"].ui["match-history-moderation-app"]).MatchHistoryModerationApp,
-    }
     MHA = vape.Categories.Minigames:CreateModule({
         Name = "ViewHistory",
         Function = function(callback)
             if callback then
                 MHA:Toggle(false)
-                bedwars.MatchHistoryController:requestMatchHistory(lplr.Name):andThen(function(Data)
+                bedwars.MatchHistroyController:requestMatchHistory(lplr.Name):andThen(function(Data)
                     if Data then
-                        bedwars.AppController:openApp({app = b.MatchHistroyApp,appId = "MatchHistoryApp",},Data)
+                        bedwars.AppController:openApp({app = bedwars.MatchHistroyApp,appId = "MatchHistoryApp",},Data)
                     end
                 end)
             else
