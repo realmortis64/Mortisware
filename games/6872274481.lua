@@ -9402,19 +9402,4 @@ run(function()
         end,
         Tooltip = "Allows you to see everyone's kit during kit phase (squads ranked!)"
     })
-end)
-run(function()
-    local MH
-    MH = vape.Categories.Minigames:CreateModule({
-        Name = "MatchHistory",
-        Function = function(v)
-            if v then
-                MH:Toggle()
-                local TeleportService = game:GetService("TeleportService")
-                local data = TeleportService:GetLocalPlayerTeleportData()
-                TeleportService:Teleport(game.PlaceId, game.Players.LocalPlayer, data)
-            else
-                return
-            end
-        end
-    })
+
