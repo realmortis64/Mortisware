@@ -9456,7 +9456,7 @@ run(function()
         Function = function(callback)
             if callback then
                 MHA:Toggle(false)
-                bedwars.MatchHistroyController:requestMatchHistory(lplr.Name):andThen(function(Data)
+                bedwars.MatchHistoryController:requestMatchHistory(lplr.Name):andThen(function(Data)
                     if Data then
                         bedwars.AppController:openApp({app = b.MatchHistroyApp,appId = "MatchHistoryApp",},Data)
                     end
