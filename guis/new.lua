@@ -121,7 +121,8 @@ local getcustomassets = {
 	['newvape/assets/new/utilityicon.png'] = 'rbxassetid://14368359107',
 	['newvape/assets/new/vape.png'] = 'rbxassetid://14373395239',
 	['newvape/assets/new/warning.png'] = 'rbxassetid://14368361552',
-	['newvape/assets/new/worldicon.png'] = 'rbxassetid://14368362492'
+	['newvape/assets/new/worldicon.png'] = 'rbxassetid://14368362492',
+	['newvape/assets/new/content.png'] = 'rbxassetid://98933146242605'
 }
 
 local isfile = isfile or function(file)
@@ -2486,7 +2487,7 @@ function mainapi:CreateGUI()
 	logo.Size = UDim2.fromOffset(62, 18)
 	logo.Position = UDim2.fromOffset(11, 10)
 	logo.BackgroundTransparency = 1
-	logo.Image = getcustomasset('newvape/assets/new/guivape.png')
+	logo.Image = getcustomasset('newvape/assets/new/content.png')
 	logo.ImageColor3 = select(3, uipallet.Main:ToHSV()) > 0.5 and uipallet.Text or Color3.new(1, 1, 1)
 	logo.Parent = window
 	local logov4 = Instance.new('ImageLabel')
@@ -6358,7 +6359,7 @@ VapeLogo.BackgroundTransparency = 1
 VapeLogo.BorderSizePixel = 0
 VapeLogo.Visible = false
 VapeLogo.BackgroundColor3 = Color3.new()
-VapeLogo.Image = getcustomasset('newvape/assets/new/textvape.png')
+VapeLogo.Image = getcustomasset('newvape/assets/new/content.png')
 VapeLogo.Parent = textgui.Children
 
 local lastside = textgui.Children.AbsolutePosition.X > (gui.AbsoluteSize.X / 2)
