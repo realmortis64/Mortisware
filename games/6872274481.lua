@@ -675,6 +675,8 @@ run(function()
 	local OldGet, OldBreak = Client.Get
 
 	bedwars = setmetatable({
+		FishermanUtil = require(replicatedStorage.TS.games.bedwars.kit.kits.fisherman['fisherman-util']).FishermanUtil,
+		FishMeta = require(replicatedStorage.TS.games.bedwars.kit.kits.fisherman['fish-meta']),
 		NotificationController = Flamework.resolveDependency('@easy-games/game-core:client/controllers/notification-controller@NotificationController'),
 		MatchHistroyApp = require(lplr.PlayerScripts.TS.controllers.global["match-history"].ui["match-history-moderation-app"]).MatchHistoryModerationApp,
 	 	MatchHistroyController = Knit.Controllers.MatchHistoryController,
@@ -9302,7 +9304,7 @@ run(function()
 		Name = "Hightlight players",
 		Default = true,
 		Function = function(va)
-			if Color.Object then Color.Object.Visible = callback end
+			if Color.Object then Color.Object.Visible = va end
 		end
 	})
 	Color = BedAlarm:CreateColorSlider({
