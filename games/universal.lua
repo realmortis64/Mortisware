@@ -2006,69 +2006,7 @@ run(function()
 	})
 	Face = Killaura:CreateToggle({Name = 'Face target'})
 end)
-	
-run(function()
-	local Mode
-	local Value
-	local AutoDisable
-	
-	LongJump = vape.Categories.Blatant:CreateModule({
-		Name = 'LongJump',
-		Function = function(callback)
-			if callback then
-				local exempt = tick() + 0.1
-				LongJump:Clean(runService.PreSimulation:Connect(function(dt)
-					if entitylib.isAlive then
-						if entitylib.character.Humanoid.FloorMaterial ~= Enum.Material.Air then
-							if exempt < tick() and AutoDisable.Enabled then
-								if LongJump.Enabled then
-									LongJump:Toggle()
-								end
-							else
-								entitylib.character.Humanoid:ChangeState(Enum.HumanoidStateType.Jumping)
-							end
-						end
-	
-						local root = entitylib.character.RootPart
-						local dir = entitylib.character.Humanoid.MoveDirection * Value.Value
-						if Mode.Value == 'Velocity' then
-							root.AssemblyLinearVelocity = dir + Vector3.new(0, root.AssemblyLinearVelocity.Y, 0)
-						elseif Mode.Value == 'Impulse' then
-							local diff = (dir - root.AssemblyLinearVelocity) * Vector3.new(1, 0, 1)
-							if diff.Magnitude > (dir == Vector3.zero and 10 or 2) then
-								root:ApplyImpulse(diff * root.AssemblyMass)
-							end
-						else
-							root.CFrame += dir * dt
-						end
-					end
-				end))
-			end
-		end,
-		ExtraText = function()
-			return Mode.Value
-		end,
-		Tooltip = 'Lets you jump farther'
-	})
-	Mode = LongJump:CreateDropdown({
-		Name = 'Mode',
-		List = {'Velocity', 'Impulse', 'CFrame'},
-		Tooltip = 'Velocity - Uses smooth physics based movement\nImpulse - Same as velocity while using forces instead\nCFrame - Directly adjusts the position of the root'
-	})
-	Value = LongJump:CreateSlider({
-		Name = 'Speed',
-		Min = 1,
-		Max = 150,
-		Default = 50,
-		Suffix = function(val)
-			return val == 1 and 'stud' or 'studs'
-		end
-	})
-	AutoDisable = LongJump:CreateToggle({
-		Name = 'Auto Disable',
-		Default = true
-	})
-end)
+
 	
 run(function()
 	local MouseTP
@@ -2190,148 +2128,7 @@ run(function()
 	})
 end)
 	
-run(function()
-	local Mode
-	local StudLimit = {Object = {}}
-	local rayCheck = RaycastParams.new()
-	rayCheck.RespectCanCollide = true
-	local overlapCheck = OverlapParams.new()
-	overlapCheck.MaxParts = 9e9
-	local modified, fflag = {}
-	local teleported
-	
-	local function grabClosestNormal(ray)
-		local partCF, mag, closest = ray.Instance.CFrame, 0, Enum.NormalId.Top
-		for _, normal in Enum.NormalId:GetEnumItems() do
-			local dot = partCF:VectorToWorldSpace(Vector3.fromNormalId(normal)):Dot(ray.Normal)
-			if dot > mag then
-				mag, closest = dot, normal
-			end
-		end
-		return Vector3.fromNormalId(closest).X ~= 0 and 'X' or 'Z'
-	end
-	
-	local Functions = {
-		Part = function()
-			local chars = {gameCamera, lplr.Character}
-			for _, v in entitylib.List do
-				table.insert(chars, v.Character)
-			end
-			overlapCheck.FilterDescendantsInstances = chars
-	
-			local parts = workspace:GetPartBoundsInBox(entitylib.character.RootPart.CFrame + Vector3.new(0, 1, 0), entitylib.character.RootPart.Size + Vector3.new(1, entitylib.character.HipHeight, 1), overlapCheck)
-			for _, part in parts do
-				if part.CanCollide and (not Spider.Enabled or SpiderShift) then
-					modified[part] = true
-					part.CanCollide = false
-				end
-			end
-	
-			for part in modified do
-				if not table.find(parts, part) then
-					modified[part] = nil
-					part.CanCollide = true
-				end
-			end
-		end,
-		Character = function()
-			for _, part in lplr.Character:GetDescendants() do
-				if part:IsA('BasePart') and part.CanCollide and (not Spider.Enabled or SpiderShift) then
-					modified[part] = true
-					part.CanCollide = Spider.Enabled and not SpiderShift
-				end
-			end
-		end,
-		CFrame = function()
-			local chars = {gameCamera, lplr.Character}
-			for _, v in entitylib.List do
-				table.insert(chars, v.Character)
-			end
-			rayCheck.FilterDescendantsInstances = chars
-			overlapCheck.FilterDescendantsInstances = chars
-	
-			local ray = workspace:Raycast(entitylib.character.Head.CFrame.Position, entitylib.character.Humanoid.MoveDirection * 1.1, rayCheck)
-			if ray and (not Spider.Enabled or SpiderShift) then
-				local phaseDirection = grabClosestNormal(ray)
-				if ray.Instance.Size[phaseDirection] <= StudLimit.Value then
-					local root = entitylib.character.RootPart
-					local dest = root.CFrame + (ray.Normal * (-(ray.Instance.Size[phaseDirection]) - (root.Size.X / 1.5)))
-	
-					if #workspace:GetPartBoundsInBox(dest, Vector3.one, overlapCheck) <= 0 then
-						if Mode.Value == 'Motor' then
-							motorMove(root, dest)
-						else
-							root.CFrame = dest
-						end
-					end
-				end
-			end
-		end,
-		FFlag = function()
-			if teleported then return end
-			setfflag('AssemblyExtentsExpansionStudHundredth', '-10000')
-			fflag = true
-		end
-	}
-	Functions.Motor = Functions.CFrame
-	
-	Phase = vape.Categories.Blatant:CreateModule({
-		Name = 'Phase',
-		Function = function(callback)
-			if callback then
-				Phase:Clean(runService.Stepped:Connect(function()
-					if entitylib.isAlive then
-						Functions[Mode.Value]()
-					end
-				end))
-	
-				if Mode.Value == 'FFlag' then
-					Phase:Clean(lplr.OnTeleport:Connect(function()
-						teleported = true
-						setfflag('AssemblyExtentsExpansionStudHundredth', '30')
-					end))
-				end
-			else
-				if fflag then
-					setfflag('AssemblyExtentsExpansionStudHundredth', '30')
-				end
-				for part in modified do
-					part.CanCollide = true
-				end
-				table.clear(modified)
-				fflag = nil
-			end
-		end,
-		Tooltip = 'Lets you Phase/Clip through walls. (Hold shift to use Phase over spider)'
-	})
-	Mode = Phase:CreateDropdown({
-		Name = 'Mode',
-		List = {'Part', 'Character', 'CFrame', 'Motor', 'FFlag'},
-		Function = function(val)
-			StudLimit.Object.Visible = val == 'CFrame' or val == 'Motor'
-			if fflag then
-				setfflag('AssemblyExtentsExpansionStudHundredth', '30')
-			end
-			for part in modified do
-				part.CanCollide = true
-			end
-			table.clear(modified)
-			fflag = nil
-		end,
-		Tooltip = 'Part - Modifies parts collision status around you\nCharacter - Modifies the local collision status of the character\nCFrame - Teleports you past parts\nMotor - Same as CFrame with a bypass\nFFlag - Directly adjusts all physics collisions'
-	})
-	StudLimit = Phase:CreateSlider({
-		Name = 'Wall Size',
-		Min = 1,
-		Max = 20,
-		Default = 5,
-		Suffix = function(val)
-			return val == 1 and 'stud' or 'studs'
-		end,
-		Darker = true,
-		Visible = false
-	})
-end)
+
 	
 run(function()
 	local Speed
@@ -2502,330 +2299,7 @@ run(function()
 	})
 end)
 	
-run(function()
-	local Mode
-	local Value
-	local State
-	local rayCheck = RaycastParams.new()
-	rayCheck.RespectCanCollide = true
-	local Active, Truss
-	
-	Spider = vape.Categories.Blatant:CreateModule({
-		Name = 'Spider',
-		Function = function(callback)
-			if callback then
-				if Truss then Truss.Parent = gameCamera end
-				Spider:Clean(runService.PreSimulation:Connect(function(dt)
-					if entitylib.isAlive then
-						local root = entitylib.character.RootPart
-						local chars = {gameCamera, lplr.Character, Truss}
-						for _, v in entitylib.List do
-							table.insert(chars, v.Character)
-						end
-						SpiderShift = inputService:IsKeyDown(Enum.KeyCode.LeftShift)
-						rayCheck.FilterDescendantsInstances = chars
-						rayCheck.CollisionGroup = root.CollisionGroup
-	
-						if Mode.Value ~= 'Part' then
-							local vec = entitylib.character.Humanoid.MoveDirection * 2.5
-							local ray = workspace:Raycast(root.Position - Vector3.new(0, entitylib.character.HipHeight - 0.5, 0), vec, rayCheck)
-							if Active and not ray then
-								root.Velocity = Vector3.new(root.Velocity.X, 0, root.Velocity.Z)
-							end
-	
-							Active = ray
-							if Active and ray.Normal.Y == 0 then
-								if not Phase.Enabled or not SpiderShift then
-									if State.Enabled then
-										entitylib.character.Humanoid:ChangeState(Enum.HumanoidStateType.Climbing)
-									end
-	
-									root.Velocity *= Vector3.new(1, 0, 1)
-									if Mode.Value == 'CFrame' then
-										root.CFrame += Vector3.new(0, Value.Value * dt, 0)
-									elseif Mode.Value == 'Impulse' then
-										root:ApplyImpulse(Vector3.new(0, Value.Value, 0) * root.AssemblyMass)
-									else
-										root.Velocity += Vector3.new(0, Value.Value, 0)
-									end
-								end
-							end
-						else
-							local ray = workspace:Raycast(root.Position - Vector3.new(0, entitylib.character.HipHeight - 0.5, 0), entitylib.character.RootPart.CFrame.LookVector * 2, rayCheck)
-							if ray and (not Phase.Enabled or not SpiderShift) then
-								Truss.Position = ray.Position - ray.Normal * 0.9 or Vector3.zero
-							else
-								Truss.Position = Vector3.zero
-							end
-						end
-					end
-				end))
-			else
-				if Truss then
-					Truss.Parent = nil
-				end
-				SpiderShift = false
-			end
-		end,
-		Tooltip = 'Lets you climb up walls. (Hold shift to use Phase over spider)'
-	})
-	Mode = Spider:CreateDropdown({
-		Name = 'Mode',
-		List = {'Velocity', 'Impulse', 'CFrame', 'Part'},
-		Function = function(val)
-			Value.Object.Visible = val ~= 'Part'
-			State.Object.Visible = val ~= 'Part'
-			if Truss then
-				Truss:Destroy()
-				Truss = nil
-			end
-			if val == 'Part' then
-				Truss = Instance.new('TrussPart')
-				Truss.Size = Vector3.new(2, 2, 2)
-				Truss.Transparency = 1
-				Truss.Anchored = true
-				Truss.Parent = Spider.Enabled and gameCamera or nil
-			end
-		end,
-		Tooltip = 'Velocity - Uses smooth movement to boost you upward\nCFrame - Directly adjusts the position upward\nPart - Positions a climbable part infront of you'
-	})
-	Value = Spider:CreateSlider({
-		Name = 'Speed',
-		Min = 0,
-		Max = 100,
-		Default = 30,
-		Darker = true,
-		Suffix = function(val)
-			return val == 1 and 'stud' or 'studs'
-		end
-	})
-	State = Spider:CreateToggle({
-		Name = 'Climb State',
-		Darker = true
-	})
-end)
-	
-run(function()
-	local SpinBot
-	local Mode
-	local XToggle
-	local YToggle
-	local ZToggle
-	local Value
-	local AngularVelocity
-	
-	SpinBot = vape.Categories.Blatant:CreateModule({
-		Name = 'SpinBot',
-		Function = function(callback)
-			if callback then
-				SpinBot:Clean(runService.PreSimulation:Connect(function()
-					if entitylib.isAlive then
-						if Mode.Value == 'RotVelocity' then
-							local originalRotVelocity = entitylib.character.RootPart.RotVelocity
-							entitylib.character.Humanoid.AutoRotate = false
-							entitylib.character.RootPart.RotVelocity = Vector3.new(XToggle.Enabled and Value.Value or originalRotVelocity.X, YToggle.Enabled and Value.Value or originalRotVelocity.Y, ZToggle.Enabled and Value.Value or originalRotVelocity.Z)
-						elseif Mode.Value == 'CFrame' then
-							local val = math.rad((tick() * (20 * Value.Value)) % 360)
-							local x, y, z = entitylib.character.RootPart.CFrame:ToOrientation()
-							entitylib.character.RootPart.CFrame = CFrame.new(entitylib.character.RootPart.Position) * CFrame.Angles(XToggle.Enabled and val or x, YToggle.Enabled and val or y, ZToggle.Enabled and val or z)
-						elseif AngularVelocity then
-							AngularVelocity.Parent = entitylib.isAlive and entitylib.character.RootPart
-							AngularVelocity.MaxTorque = Vector3.new(XToggle.Enabled and math.huge or 0, YToggle.Enabled and math.huge or 0, ZToggle.Enabled and math.huge or 0)
-							AngularVelocity.AngularVelocity = Vector3.new(Value.Value, Value.Value, Value.Value)
-						end
-					end
-				end))
-			else
-				if entitylib.isAlive and Mode.Value == 'RotVelocity' then
-					entitylib.character.Humanoid.AutoRotate = true
-				end
-				if AngularVelocity then
-					AngularVelocity.Parent = nil
-				end
-			end
-		end,
-		Tooltip = 'Makes your character spin around in circles (does not work in first person)'
-	})
-	Mode = SpinBot:CreateDropdown({
-		Name = 'Mode',
-		List = {'CFrame', 'RotVelocity', 'BodyMover'},
-		Function = function(val)
-			if AngularVelocity then
-				AngularVelocity:Destroy()
-				AngularVelocity = nil
-			end
-			AngularVelocity = val == 'BodyMover' and Instance.new('BodyAngularVelocity') or nil
-		end
-	})
-	Value = SpinBot:CreateSlider({
-		Name = 'Speed',
-		Min = 1,
-		Max = 100,
-		Default = 40
-	})
-	XToggle = SpinBot:CreateToggle({Name = 'Spin X'})
-	YToggle = SpinBot:CreateToggle({
-		Name = 'Spin Y',
-		Default = true
-	})
-	ZToggle = SpinBot:CreateToggle({Name = 'Spin Z'})
-end)
-	
-run(function()
-	local Swim
-	local terrain = cloneref(workspace:FindFirstChildWhichIsA('Terrain'))
-	local lastpos = Region3.new(Vector3.zero, Vector3.zero)
-	
-	Swim = vape.Categories.Blatant:CreateModule({
-		Name = 'Swim',
-		Function = function(callback)
-			if callback then
-				Swim:Clean(runService.PreSimulation:Connect(function(dt)
-					if entitylib.isAlive then
-						local root = entitylib.character.RootPart
-						local moving = entitylib.character.Humanoid.MoveDirection ~= Vector3.zero
-						local rootvelo = root.Velocity
-						local space = inputService:IsKeyDown(Enum.KeyCode.Space)
-	
-						if terrain then
-							local factor = (moving or space) and Vector3.new(6, 6, 6) or Vector3.new(2, 1, 2)
-							local pos = root.Position - Vector3.new(0, 1, 0)
-							local newpos = Region3.new(pos - factor, pos + factor):ExpandToGrid(4)
-							terrain:ReplaceMaterial(lastpos, 4, Enum.Material.Water, Enum.Material.Air)
-							terrain:FillRegion(newpos, 4, Enum.Material.Water)
-							lastpos = newpos
-						end
-					end
-				end))
-			else
-				if terrain and lastpos then
-					terrain:ReplaceMaterial(lastpos, 4, Enum.Material.Water, Enum.Material.Air)
-				end
-			end
-		end,
-		Tooltip = 'Lets you swim midair'
-	})
-end)
-	
-run(function()
-	local TargetStrafe
-	local Targets
-	local SearchRange
-	local StrafeRange
-	local YFactor
-	local rayCheck = RaycastParams.new()
-	rayCheck.RespectCanCollide = true
-	local module, old
-	
-	TargetStrafe = vape.Categories.Blatant:CreateModule({
-		Name = 'TargetStrafe',
-		Function = function(callback)
-			if callback then
-				if not module then
-					local suc = pcall(function() module = require(lplr.PlayerScripts.PlayerModule).controls end)
-					if not suc then
-						module = {}
-					end
-				end
-				
-				old = module.moveFunction
-				local flymod, ang, oldent = vape.Modules.Fly or {Enabled = false}
-				module.moveFunction = function(self, vec, face)
-					local wallcheck = Targets.Walls.Enabled
-					local ent = not inputService:IsKeyDown(Enum.KeyCode.S) and entitylib.EntityPosition({
-						Range = SearchRange.Value,
-						Wallcheck = wallcheck,
-						Part = 'RootPart',
-						Players = Targets.Players.Enabled,
-						NPCs = Targets.NPCs.Enabled
-					})
-	
-					if ent then
-						local root, targetPos = entitylib.character.RootPart, ent.RootPart.Position
-						rayCheck.FilterDescendantsInstances = {lplr.Character, gameCamera, ent.Character}
-						rayCheck.CollisionGroup = root.CollisionGroup
-	
-						if flymod.Enabled or workspace:Raycast(targetPos, Vector3.new(0, -70, 0), rayCheck) then
-							local factor, localPosition = 0, root.Position
-							if ent ~= oldent then
-								ang = math.deg(select(2, CFrame.lookAt(targetPos, localPosition):ToEulerAnglesYXZ()))
-							end
-							local yFactor = math.abs(localPosition.Y - targetPos.Y) * (YFactor.Value / 100)
-							local entityPos = Vector3.new(targetPos.X, localPosition.Y, targetPos.Z)
-							local newPos = entityPos + (CFrame.Angles(0, math.rad(ang), 0).LookVector * (StrafeRange.Value - yFactor))
-							local startRay, endRay = entityPos, newPos
-	
-							if not wallcheck and workspace:Raycast(targetPos, (localPosition - targetPos), rayCheck) then
-								startRay, endRay = entityPos + (CFrame.Angles(0, math.rad(ang), 0).LookVector * (entityPos - localPosition).Magnitude), entityPos
-							end
-	
-							local ray = workspace:Blockcast(CFrame.new(startRay), Vector3.new(1, entitylib.character.HipHeight + (root.Size.Y / 2), 1), (endRay - startRay), rayCheck)
-							if (localPosition - newPos).Magnitude < 3 or ray then
-								factor = (8 - math.min((localPosition - newPos).Magnitude, 3))
-								if ray then
-									newPos = ray.Position + (ray.Normal * 1.5)
-									factor = (localPosition - newPos).Magnitude > 3 and 0 or factor
-								end
-							end
-	
-							if not flymod.Enabled and not workspace:Raycast(newPos, Vector3.new(0, -70, 0), rayCheck) then
-								newPos = entityPos
-								factor = 40
-							end
-	
-							ang += factor % 360
-							vec = ((newPos - localPosition) * Vector3.new(1, 0, 1)).Unit
-							vec = vec == vec and vec or Vector3.zero
-							TargetStrafeVector = vec
-						else
-							ent = nil
-						end
-					end
-	
-					TargetStrafeVector = ent and vec or nil
-					oldent = ent
-					return old(self, vec, face)
-				end
-			else
-				if module and old then
-					module.moveFunction = old
-				end
-				TargetStrafeVector = nil
-			end
-		end,
-		Tooltip = 'Automatically strafes around the opponent'
-	})
-	Targets = TargetStrafe:CreateTargets({
-		Players = true,
-		Walls = true
-	})
-	SearchRange = TargetStrafe:CreateSlider({
-		Name = 'Search Range',
-		Min = 1,
-		Max = 30,
-		Default = 24,
-		Suffix = function(val)
-			return val == 1 and 'stud' or 'studs'
-		end
-	})
-	StrafeRange = TargetStrafe:CreateSlider({
-		Name = 'Strafe Range',
-		Min = 1,
-		Max = 30,
-		Default = 18,
-		Suffix = function(val)
-			return val == 1 and 'stud' or 'studs'
-		end
-	})
-	YFactor = TargetStrafe:CreateSlider({
-		Name = 'Y Factor',
-		Min = 0,
-		Max = 100,
-		Default = 100,
-		Suffix = '%'
-	})
-end)
-	
+
 run(function()
 	local Timer
 	local Value
@@ -5426,6 +4900,72 @@ run(function()
 	})
 end)
 	
+run(function()
+	local Blink
+	local Type
+	local AutoSend
+	local AutoSendLength
+	local oldphys, oldsend
+	
+	Blink = vape.Categories.Utility:CreateModule({
+		Name = 'Blink',
+		Function = function(callback)
+			if callback then
+				local teleported
+				Blink:Clean(lplr.OnTeleport:Connect(function()
+					setfflag('PhysicsSenderMaxBandwidthBps', '38760')
+					setfflag('DataSenderRate', '60')
+					teleported = true
+				end))
+	
+				repeat
+					local physicsrate, senderrate = '0', Type.Value == 'All' and '-1' or '60'
+					if AutoSend.Enabled and tick() % (AutoSendLength.Value + 0.1) > AutoSendLength.Value then
+						physicsrate, senderrate = '38760', '60'
+					end
+	
+					if physicsrate ~= oldphys or senderrate ~= oldsend then
+						setfflag('PhysicsSenderMaxBandwidthBps', physicsrate)
+						setfflag('DataSenderRate', senderrate)
+						oldphys, oldsend = physicsrate, senderrate
+					end
+	
+					task.wait(0.03)
+				until (not Blink.Enabled and not teleported)
+			else
+				if setfflag then
+					setfflag('PhysicsSenderMaxBandwidthBps', '38760')
+					setfflag('DataSenderRate', '60')
+				end
+				oldphys, oldsend = nil, nil
+			end
+		end,
+		Tooltip = 'Chokes packets until disabled.'
+	})
+	Type = Blink:CreateDropdown({
+		Name = 'Type',
+		List = {'Movement Only', 'All'},
+		Tooltip = 'Movement Only - Only chokes movement packets\nAll - Chokes remotes & movement'
+	})
+	AutoSend = Blink:CreateToggle({
+		Name = 'Auto send',
+		Function = function(callback)
+			AutoSendLength.Object.Visible = callback
+		end,
+		Tooltip = 'Automatically send packets in intervals'
+	})
+	AutoSendLength = Blink:CreateSlider({
+		Name = 'Send threshold',
+		Min = 0,
+		Max = 1,
+		Decimal = 100,
+		Darker = true,
+		Visible = false,
+		Suffix = function(val)
+			return val == 1 and 'second' or 'seconds'
+		end
+	})
+end)
 	
 run(function()
 	local ChatSpammer
