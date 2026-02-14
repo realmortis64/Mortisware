@@ -1491,7 +1491,7 @@ run(function()
 	local LastSwitchTime = 0
 	local SwitchDelay
 	local Visualiser
-	local AttackRemote = {}
+	local AttackRemote = bedwars.Client:Get(remotes.AttackEntity)
 	local ASOPT
 	local ASMS
 	local LastAuraTarget = nil
@@ -1499,9 +1499,6 @@ run(function()
 	local FROZEN_THRESHOLD = 10
 	local CURRENT_LEVEL_FROZEN = 0
 	local CurrentSwingTICK = 0
-    task.spawn(function()
-        AttackRemote = bedwars.Client:Get(remotes.AttackEntity)
-    end)
 	local lastCustomHitTime = 0
 
 	local function getAttackData()
@@ -2262,7 +2259,7 @@ run(function()
 	UpdateRate = Killaura:CreateSlider({
 		Name = 'Update rate',
 		Min = 1,
-		Max = 360,
+		Max = 520,
 		Default = 60,
 		Suffix = 'hz'
 	})
