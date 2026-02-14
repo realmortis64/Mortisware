@@ -1491,7 +1491,7 @@ run(function()
 	local LastSwitchTime = 0
 	local SwitchDelay
 	local Visualiser
-	local AttackRemote = bedwars.Client:Get(remotes.AttackEntity)
+	local AttackRemote = bedwars.Client:Get(remotes.AttackEntity).instance
 	local ASOPT
 	local ASMS
 	local LastAuraTarget = nil
@@ -1628,7 +1628,7 @@ run(function()
             if not select(2, whitelist:get(plr)) then return end
         end
 
-        return AttackRemote:SendToServer(attackTable)
+        return AttackRemote:FireServer(attackTable)
 	end
 
 	local function resolveAttackTargets(plrs)
