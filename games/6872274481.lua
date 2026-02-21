@@ -8948,10 +8948,6 @@ run(function()
 		Name = "AutoZeno",
 		Tooltip = 'makes you play like yuta(demon at zeno for those who know ☠️☠️)',
 		Function = function(callback)
-	   		if role ~= "owner" and role ~= "coowner" and role ~= "admin" and role ~= "friend" and role ~= 'premium' and role ~= 'user' then
-				vape:CreateNotification("Onyx", "You don’t have access to this.", 10, "alert")
-				return
-			end
 			if store.equippedKit ~= "wizard" then
 				vape:CreateNotification("AutoZeno","Kit required only!",8,"warning")
 				return
@@ -9105,10 +9101,6 @@ run(function()
 		Name = "BetterWarden",
 		Tooltip = tip,
 		Function = function(callback)
-	   		if role ~= "owner" and role ~= "coowner" and role ~= "admin" and role ~= "friend" and role ~= 'premium' and role ~= 'user' then
-				vape:CreateNotification("Onyx", "You don’t have access to this.", 10, "alert")
-				return
-			end
 			if store.equippedKit ~= "jailor" then
 				vape:CreateNotification("BetterWarden","Kit required only!",8,"warning")
 				return
@@ -9560,10 +9552,6 @@ run(function()
 		Name = "AutoLani",
 		Tooltip = 'allows you to tp to a targetted player no matter what!',
 		Function = function(callback)
-   			if role ~= "owner" and role ~= "coowner" and role ~= "admin" and role ~= "friend" and role ~= 'premium' and role ~= 'user' then
-				vape:CreateNotification("Onyx", "You don’t have access to this.", 10, "alert")
-				return
-			end
 			if store.equippedKit ~= "paladin" then
 				vape:CreateNotification("AutoLani","Kit required only!",8,"warning")
 				return
@@ -9630,10 +9618,6 @@ run(function()
 		Name = "AutoRamil",
 		Tooltip = 'makes you play like me at ramil(i like ramil)',
 		Function = function(callback)
-   			if role ~= "owner" and role ~= "coowner" and role ~= "admin" and role ~= "friend" and role ~= "premium" and role ~= "user" then
-				vape:CreateNotification("Onyx", "You don’t have access to this.", 10, "alert")
-				return
-			end
 			if store.equippedKit ~= "airbender" then
 				vape:CreateNotification("AutoRamil","Kit required only!",8,"warning")
 				return
@@ -9761,10 +9745,6 @@ run(function()
 		Name = "AutoMetal",
 		Tooltip = 'makes you play like bobcat at metal or any1 whos good(js naming sm1 i know who mains metal)',
 		Function = function(callback)
-   			if role ~= "owner" and role ~= "coowner" and role ~= "admin" and role ~= "friend" and role ~= "premium" and role ~= "user" then
-				vape:CreateNotification("Onyx", "You don’t have access to this.", 10, "alert")
-				return
-			end 
 			if store.equippedKit ~= "metal_detector" then
 				vape:CreateNotification("AutoMetal","Kit required only!",8,"warning")
 				return
@@ -9893,10 +9873,7 @@ run(function()
     BetterAdetunde = vape.Categories.Minigames:CreateModule({
         Name = 'AutoAdetunde',
         Function = function(calling)
-			if role ~= "owner" and role ~= "coowner" and role ~= "admin" and role ~= "friend" and role ~= "premium" and role ~= "user" then
-				vape:CreateNotification("Onyx", "You don’t have access to this.", 10, "alert")
-				return
-			end 
+
             if calling then 
                 if store.equippedKit == "frost_hammer_kit" then
 					current_upgrador = BetterAdetunde_List.Value
@@ -9987,10 +9964,7 @@ run(function()
         Name = "AutoKaida",
         Tooltip = "Killaura-style Kaida",
         Function = function(callback)
-			if role ~= "owner" and role ~= "coowner" and role ~= "admin" and role ~= "friend" and role ~= "premium" and role ~= "user"then
-				vape:CreateNotification("Onyx", "You don’t have access to this.", 10, "alert")
-				return
-			end 
+
 			if store.equippedKit ~= "summoner" then
 				vape:CreateNotification("AutoKaida","Kit required only!",8,"warning")
 				return
@@ -10211,10 +10185,7 @@ run(function()
 			Name = "AutoNazar",
 			Tooltip = "makes you look good with nazar lmfao",
 			Function = function(callback)
-			if role ~= "owner" and role ~= "coowner" and role ~= "admin" and role ~= "friend" and role ~= "premium" and role ~= "user"then
-				vape:CreateNotification("Onyx", "You don’t have access to this.", 10, "alert")
-				return
-			end 
+			
 			if store.equippedKit ~= "nazar" then
 				vape:CreateNotification("AutoNazar","Kit required only!",8,"warning")
 				return
@@ -10553,10 +10524,6 @@ run(function()
     BetterWhisper = vape.Categories.Minigames:CreateModule({
         Name = 'AutoWhisper',
         Function = function(callback)
-			if role ~= "owner" and role ~= "coowner" and role ~= "admin" and role ~= "friend" and role ~= "premium"and role ~= "user"then
-				vape:CreateNotification("Onyx", "You don’t have access to this.", 10, "alert")
-				return
-			end	
             if callback then
 			if store.equippedKit ~= "owl" then
 				vape:CreateNotification("AutoWhisper","Kit required only!",8,"warning")
