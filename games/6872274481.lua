@@ -1525,7 +1525,13 @@ run(function()
 	TargetCheck = Velocity:CreateToggle({Name = 'Only when targeting'})
 end)
 	
-
+local function cloneRaycast()
+    local r = RaycastParams.new()
+    r.FilterType = sharedRaycast.FilterType
+    r.FilterDescendantsInstances = sharedRaycast.FilterDescendantsInstances
+    r.RespectCanCollide = sharedRaycast.RespectCanCollide
+    return r
+end
 	
 local Attacking
 run(function()
