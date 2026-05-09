@@ -12985,3 +12985,250 @@ run(function()
 	NoSlow = AutoPyro:CreateToggle({Name="No Slow",Default=false})
 
 end)
+
+run(function()
+	local SilentAura
+	local AttacksPerSecond
+	local Angle
+	local MaxTargets
+	local Targets
+	local Sorts
+
+	local SwingRange = 12.5
+	local AttackRange = 13.2
+
+	local lastFiredSwing = 0
+	local Attacking = false
+	local nextAttackTime = 0
+
+	local AttackRemote = {FireServer = function() end}
+	task.spawn(function()
+		AttackRemote = bedwars.Client:Get(remotes.AttackEntity).instance
+	end)
+
+	local function optimizeHitData(selfpos, targetpos, delta)
+		local direction = (targetpos - selfpos).Unit
+		local distance = delta.Magnitude
+
+		local forwardOffset = 0
+		local backwardOffset = 0
+
+		if distance > 20 then
+			forwardOffset = math.min(3.5, 2.7 + (distance - 20) * 0.14)
+			backwardOffset = 0.8
+		elseif distance > 18 then
+			local t = (distance - 18) / 2.2
+			forwardOffset = 2.15 + t * 0.9
+			backwardOffset = 0.5 + t * 0.42
+		elseif distance > 14 then
+			local t = (distance - 14) / 4.5
+			forwardOffset = 1.45 + t * 0.72
+			backwardOffset = 0.32 + t * 0.2
+		elseif distance > 9 then
+			local t = (distance - 9) / 5
+			forwardOffset = 0.95 + t * 0.48
+			backwardOffset = 0.18 * t
+		else
+			forwardOffset = math.max(0.6, distance * 0.1)
+		end
+
+		local optimizedSelf  = selfpos + (direction * forwardOffset) + Vector3.new(0, 0.8 + distance*0.03, 0)
+		local optimizedTarget = targetpos - (direction * backwardOffset) + Vector3.new(0, 1.2 + distance*0.04, 0)
+
+		return optimizedSelf, optimizedTarget, direction
+	end
+
+	local function getOptimizedAttackTiming(selfpos, targetpos)
+		local currentTime = tick()
+		local distance = (selfpos - targetpos).Magnitude
+		local delay = 0.03
+
+		if distance > 22 then
+			delay = 0.48
+		elseif distance > 19 then
+			delay = 0.39 + (distance - 19) * 0.04
+		elseif distance > 16 then
+			delay = 0.22 + (distance - 16) * 0.1
+		elseif distance > 13 then
+			delay = 0.11 + (distance - 13) * 0.07
+		elseif distance > 9 then
+			delay = 0.055 + (distance - 9) * 0.022
+		else
+			delay = 0.028 + distance * 0.005
+		end
+
+		delay = delay * (1.03 + math.random() * 0.16)
+
+		if currentTime >= nextAttackTime then
+			nextAttackTime = currentTime + delay
+			return true
+		end
+		return false
+	end
+
+	local function getAttackData()
+		if not entitylib.isAlive then return end
+		if isFrozen(nil, 10) then return end
+		if lplr.Character:FindFirstChild('elk') then return end
+		if bedwars.AppController:isLayerOpen(bedwars.UILayers.MAIN) then return end
+
+		local sword = store.hand or store.tools.sword
+		if not sword or not sword.tool then return end
+
+		local meta = bedwars.ItemMeta[sword.tool.Name]
+		if not meta or not meta.sword then return end
+		if store.hand.toolType ~= 'sword' or bedwars.DaoController.chargingMaid then return end
+
+		return sword, meta
+	end
+
+
+	SilentAura = vape.Categories.Combat:CreateModule({
+		Name = 'SilentAura',
+		Tooltip = 'simulates feeling of killaura having a built in safe aimasist\n[optional to turn off aimassist]',
+		Function = function(callback)
+			if not callback then
+				Attacking = false
+				store.SilentAuraTarget = nil
+				return
+			end
+
+			SilentAura:Clean(runService.Heartbeat:Connect(function()
+				if not entitylib.isAlive or store.hand.toolType ~= 'sword' then
+					Attacking = false
+					return
+				end
+
+				local sword, meta = getAttackData()
+				if not sword then return end
+
+				local selfpos = entitylib.character.RootPart.Position
+
+				local targets = entitylib.AllPosition({
+					Range = SwingRange,
+					Part = 'RootPart',
+					Wallcheck = Targets.Walls.Enabled,
+					Players = Targets.Players.Enabled,
+					NPCs = Targets.NPCs.Enabled,
+					Sort = sortmethods[Sorts.Value]
+				})
+
+				if #targets == 0 then
+					Attacking = false
+					return
+				end
+
+				switchItem(sword.tool, 0)
+
+				local targetCount = 0
+				Attacking = true
+
+				for _, v in targets do
+					if targetCount >= MaxTargets.Value then break end
+
+					local targetPos = v.RootPart.Position
+					local delta = (targetPos - selfpos)
+					local distance = delta.Magnitude
+
+					local localfacing = entitylib.character.RootPart.CFrame.LookVector * Vector3.new(1, 0, 1)
+					local angle = math.acos(localfacing:Dot((delta * Vector3.new(1, 0, 1)).Unit))
+					if angle > math.rad(Angle.Value / 2) then continue end
+
+					targetinfo.Targets[v] = tick() + 1
+					store.SilentAuraTarget = v
+					local chargedRatio = tick()
+
+					lastFiredSwing = bedwars.SwordController.lastSwing or 0
+					bedwars.SwordController.lastAttack = workspace:GetServerTimeNow()
+					store.SlientAttackReach = (delta.Magnitude * 100) // 1 / 100
+					store.SlientAttackReachUpdate = currentTime + 1
+					local _prevSwingTime = store.SlientSwingServerTimeDelta or workspace:GetServerTimeNow()
+					store.SlientSwingServerTimeDelta = workspace:GetServerTimeNow()
+
+
+					local suc, res = pcall(function() return playersService:GetPlayerFromCharacter(v.Character) end)
+					if suc and res then
+						local targetTier = getAccountTier(res)
+						local myTier = getAccountTier(lplr)
+
+						if targetTier >= 99 and myTier <= 4 then
+							nextAttackTime = math.huge
+							continue
+						end
+						if targetTier == 4 and myTier == 0 then
+							nextAttackTime = nextAttackTime + 1.03 + math.random() * 0.45
+						end
+					end
+
+					if distance > AttackRange then continue end
+
+					if not getOptimizedAttackTiming(selfpos, targetPos) then continue end
+					chargedRatio = lastFiredSwing - tick() * math.random()
+					if tick() - lastFiredSwing > 0.085 then
+						lastFiredSwing = tick()
+						bedwars.SwordController:playSwordEffect(meta, false)
+						if meta.displayName:find(' Scythe') then
+							bedwars.ScytheController:playLocalAnimation()
+						end
+					end
+
+					local optimizedSelf, optimizedTarget, dir = optimizeHitData(selfpos, v.Character.PrimaryPart.Position, delta)
+
+					AttackRemote:FireServer({
+						weapon = sword.tool,
+						chargedAttack = {chargeRatio = chargedRatio},
+						lastSwingServerTimeDelta = workspace:GetServerTimeNow() - (store.SlientSwingServerTimeDelta or 0),
+						entityInstance = v.Character,
+						validate = {
+							raycast = {
+								cameraPosition = {value = optimizedSelf + Vector3.new(0,1.5,0)},
+								cursorDirection = {value = dir}
+							},
+							targetPosition = {value = optimizedTarget},
+							selfPosition = {value = optimizedSelf + Vector3.new(0,.5,0)}
+						}
+					})
+
+					targetCount += 1
+				end
+
+				Attacking = false
+			end))
+		end
+	})
+
+	Targets = SilentAura:CreateTargets({ 
+		Players = true, 
+		Walls = false, 
+		NPCs = false 
+	})
+
+	Sorts = SilentAura:CreateDropdown({
+		Name = 'Sort Method',
+		List = {'Distance', 'Damage', 'Threat', 'Kit', 'Health', 'Angle', 'Cursor', 'Forest'},
+		Default = 'Distance'
+	})
+
+	AttacksPerSecond = SilentAura:CreateTwoSlider({
+		Name = 'Attacks per Second',
+		Min = 1, 
+		Max = 36,
+		DefaultMin = 23, 
+		DefaultMax = 33,
+		Decimal = 10
+	})
+
+	Angle = SilentAura:CreateSlider({ 
+		Name = 'Max Angle', 
+		Min = 0, 
+		Max = 360, 
+		Default = 90 
+	})
+
+	MaxTargets = SilentAura:CreateSlider({ 
+		Name = 'Max Targets', 
+		Min = 1, 
+		Max = 4, 
+		Default = 2 
+	})
+end)
